@@ -61,6 +61,10 @@ function App() {
     setPlaylistTracks(newPlaylistTracks);
   }
 
+  function updatePlaylistName(name: string) {
+    setPlaylistName(name);
+  }
+
   return (
     <div>
       <Global styles={globalStyles} />
@@ -75,6 +79,7 @@ function App() {
             playlistName={playlistName}
             playlistTracks={playlistTracks}
             onRemove={removeTrack}
+            onNameChange={updatePlaylistName}
           />
         </div>
       </div>
