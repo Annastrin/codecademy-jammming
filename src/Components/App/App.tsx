@@ -72,6 +72,9 @@ function App() {
     return trackURIs;
   }
 
+  function search(searchRequest: string) {
+  }
+
   return (
     <div>
       <Global styles={globalStyles} />
@@ -79,7 +82,7 @@ function App() {
         Ja<span css={highlight}>mmm</span>ing
       </h1>
       <div css={app}>
-        <SearchBar />
+        <SearchBar onSearch={search} />
         <div css={app_playlist}>
           <SearchResults searchResults={searchResults} onAdd={addTrack} />
           <Playlist
