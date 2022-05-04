@@ -6,6 +6,7 @@ import SearchResults from '../SearchResults/SearchResults';
 import Playlist from '../Playlist/Playlist';
 import { Global } from '@emotion/react';
 import { globalStyles, app, app_playlist, highlight } from './App-styles';
+import Spotify from '../../util/Spotify';
 
 function App() {
   const [searchResults, setSearchResults] = useState<TrackInfo[]>([
@@ -73,6 +74,9 @@ function App() {
   }
 
   function search(searchRequest: string) {
+    Spotify.search(searchRequest).then((results) => {
+      setSearchResults(results);
+    });
   }
 
   return (
