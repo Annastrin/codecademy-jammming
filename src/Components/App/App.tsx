@@ -65,6 +65,13 @@ function App() {
     setPlaylistName(name);
   }
 
+  function savePlaylist() {
+    const trackURIs = playlistTracks.map(
+      (track) => `spotify:track:${track.id}`
+    );
+    return trackURIs;
+  }
+
   return (
     <div>
       <Global styles={globalStyles} />
@@ -80,6 +87,7 @@ function App() {
             playlistTracks={playlistTracks}
             onRemove={removeTrack}
             onNameChange={updatePlaylistName}
+            onSave={savePlaylist}
           />
         </div>
       </div>

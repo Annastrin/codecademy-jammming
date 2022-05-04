@@ -8,6 +8,7 @@ interface PlaylistProps {
   playlistTracks: TrackInfo[];
   onRemove: UpdateTracks;
   onNameChange: (name: string) => void;
+  onSave: () => string[];
 }
 
 function Playlist({
@@ -15,6 +16,7 @@ function Playlist({
   playlistTracks,
   onRemove,
   onNameChange,
+  onSave,
 }: PlaylistProps) {
   function handleNameChange(e: React.ChangeEvent<HTMLInputElement>) {
     onNameChange(e.target.value);
@@ -23,7 +25,9 @@ function Playlist({
     <div css={playlist}>
       <input defaultValue={'New Playlist'} onChange={handleNameChange} />
       <TrackList tracks={playlistTracks} onRemove={onRemove} isRemoval={true} />
-      <button css={playlist_save}>SAVE TO SPOTIFY</button>
+      <button css={playlist_save} onClick={onSave}>
+        SAVE TO SPOTIFY
+      </button>
     </div>
   );
 }
