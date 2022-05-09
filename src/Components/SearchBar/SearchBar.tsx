@@ -10,7 +10,9 @@ function SearchBar({ onSearch }: SearchBarProps) {
   const [searchRequest, setSearchRequest] = useState('');
 
   function search() {
-    onSearch(searchRequest);
+    if (searchRequest.length > 0) {
+      onSearch(searchRequest);
+    }
   }
 
   function handleTermChange(e: React.ChangeEvent<HTMLInputElement>) {
