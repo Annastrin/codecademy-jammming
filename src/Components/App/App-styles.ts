@@ -50,6 +50,10 @@ export const globalStyles = css`
 
   /* App global styles */
 
+  * {
+    box-sizing: border-box;
+  }
+
   body,
   html,
   #root {

@@ -11,7 +11,8 @@ export const track_information = css`
   display: flex;
   flex-direction: column;
   justify-content: center;
-  height: 72px;
+  min-height: 72px;
+  padding: 10px 0;
 
   h3 {
     margin-bottom: .22rem;
