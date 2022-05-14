@@ -9,41 +9,10 @@ import { globalStyles, app, app_playlist, highlight } from './App-styles';
 import Spotify from '../../util/Spotify';
 
 function App() {
-  const [searchResults, setSearchResults] = useState<TrackInfo[]>([
-    {
-      name: 'Black and Hollow',
-      artist: 'Mercenary',
-      album: 'Architect of Lies',
-      id: '0',
-    },
-    {
-      name: 'Zeit',
-      artist: 'Rammstein',
-      album: 'Zeit',
-      id: '1',
-    },
-    {
-      name: 'Steh auf',
-      artist: 'Lindemann',
-      album: 'F&M',
-      id: '2',
-    },
-  ]);
+  const [searchResults, setSearchResults] = useState<TrackInfo[]>([]);
   const [playlistName, setPlaylistName] = useState('New Playlist');
-  const [playlistTracks, setPlaylistTracks] = useState<TrackInfo[]>([
-    {
-      name: 'So Cold',
-      artist: 'Breaking Benjamin',
-      album: 'Shallow Bay',
-      id: '3',
-    },
-    {
-      name: 'Hero',
-      artist: 'Skillet',
-      album: 'Awake',
-      id: '4',
-    },
-  ]);
+  const [playlistTracks, setPlaylistTracks] = useState<TrackInfo[]>([]);
+  const [errorMessage, setErrorMessage] = useState<Error | undefined>();
 
   function addTrack(track: TrackInfo) {
     if (
@@ -70,13 +39,27 @@ function App() {
     const trackURIs = playlistTracks.map(
       (track) => `spotify:track:${track.id}`
     );
-    return trackURIs;
+    try {
+      Spotify.savePlaylist(playlistName, trackURIs);
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        setErrorMessage(e);
+      }
+    }
   }
 
   function search(searchRequest: string) {
+    try {
     Spotify.search(searchRequest).then((results) => {
       setSearchResults(results);
     });
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        setErrorMessage(e);
+      }
+    }
+  }
+
   }
 
   return (
@@ -90,7 +73,6 @@ function App() {
         <div css={app_playlist}>
           <SearchResults searchResults={searchResults} onAdd={addTrack} />
           <Playlist
-            playlistName={playlistName}
             playlistTracks={playlistTracks}
             onRemove={removeTrack}
             onNameChange={updatePlaylistName}
