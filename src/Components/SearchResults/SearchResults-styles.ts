@@ -2,7 +2,7 @@ import { css } from '@emotion/react';
 
 export const search_results = css`
   width: 50%;
-  max-height: 950px;
+  height: 600px;
   overflow-y: scroll;
   padding: .88rem;
   background-color: rgba(1, 12, 63, 0.7);
