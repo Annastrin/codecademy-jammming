@@ -4,15 +4,13 @@ import TrackList from '../TrackList/TrackList';
 import { playlist, playlist_save } from './Playlist-styles';
 
 interface PlaylistProps {
-  playlistName: string;
   playlistTracks: TrackInfo[];
   onRemove: UpdateTracks;
   onNameChange: (name: string) => void;
-  onSave: () => string[];
+  onSave: () => void;
 }
 
 function Playlist({
-  playlistName,
   playlistTracks,
   onRemove,
   onNameChange,
