@@ -6,6 +6,8 @@ const client_id = 'c0ed2e64c73b4756b693beae2ed7a508';
 const redirect_uri = 'http://localhost:3000/';
 const authorize_url = 'https://accounts.spotify.com/authorize';
 
+// TODO add url encoding
+
 window.onload = function () {
   checkToken();
   if (!accessToken) {
@@ -66,24 +68,26 @@ const Spotify = {
       await Spotify.getAccessToken();
     }
 
-    try {
-      const data = await requestApi(`search?type=track&q=${term}`);
-      if (data.tracks) {
-        return data.tracks.items.map((track: any) => ({
-          id: track.id,
-          name: track.name,
-          artist: track.artists[0].name,
-          album: track.album.name,
-          uri: track.uri,
-        }));
-      } else {
-        return [];
-      }
-    } catch (e) {
-      console.error(e);
+    const data = await requestApi(`search?type=track&q=${term}`);
+    if (data.tracks) {
+      return data.tracks.items.map((track: any) => ({
+        id: track.id,
+        name: track.name,
+        artist: track.artists[0].name,
+        album: track.album.name,
+        uri: track.uri,
+      }));
+    } else {
+      return [];
     }
   },
 
+  /**
+   * Save a new playlist to user's Spotify account
+   * @param playlistName - playlist name from App.tsx
+   * @param trackURIs - trackURIs from App.tsx
+   * @returns - true if final response has 'snapshot_id' property, or false
+   */
   async savePlaylist(playlistName: string, trackURIs: string[]) {
     if (!(playlistName && trackURIs.length > 0)) {
       return;
@@ -92,22 +96,29 @@ const Spotify = {
     if (!accessToken) {
       await Spotify.getAccessToken();
     }
-    try {
-      const { id: userID } = await requestApi('me');
-      const { id: playlistID} = await requestApi(`users/${userID}/playlists`, {
-        method: 'POST',
-        body: JSON.stringify({name: playlistName})
-      });
-      await requestApi(`playlists/${playlistID}/tracks`, {
-        method: 'POST',
-        body: JSON.stringify({ uris: trackURIs })
-      });
-    } catch (e) {
-      console.error(e);
-    }
+
+    // Ger user's ID to pass it in the next response
+    const { id: userID } = await requestApi('me');
+    // Get created playlist's id to add tracks in the next response; pass playlist's name
+    const { id: playlistID} = await requestApi(`users/${userID}/playlists`, {
+      method: 'POST',
+      body: JSON.stringify({name: playlistName})
+    });
+    // Post tracks using their URIs and playlist's id
+    const shapshotObj = await requestApi(`playlists/${playlistID}/tracks`, {
+      method: 'POST',
+      body: JSON.stringify({ uris: trackURIs })
+    });
+    return shapshotObj.hasOwnProperty('snapshot_id');
   },
 };
 
+/**
+ * Helper function to send Get or Post requests to Spotify API
+ * @param endpoint - paths to access different endpoints [https://developer.spotify.com/documentation/web-api/reference/#/]
+ * @param args - additional arguments such as METHOD or BODY
+ * @returns - JSON response object
+ */
 async function requestApi(endpoint: string, args?: any) {
   let sessionData = JSON.parse(sessionStorage.getItem('spotifyTokenData') ?? 'null');
   let accessToken = sessionData?.token;
@@ -124,6 +135,9 @@ async function requestApi(endpoint: string, args?: any) {
   return response.json();
 }
 
+/**
+ * Check if access token saved in session storage is expired, clear if it's expired
+ */
 async function checkToken() {
   const tokenData = sessionStorage.getItem('spotifyTokenData');
   let tokenDataObj;

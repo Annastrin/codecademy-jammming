@@ -1,18 +1,19 @@
 /** @jsxImportSource @emotion/react */
 import { useState } from 'react';
-import { TrackInfo } from '../../appTypes';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { Global } from '@emotion/react';
 import SearchBar from '../SearchBar/SearchBar';
 import SearchResults from '../SearchResults/SearchResults';
 import Playlist from '../Playlist/Playlist';
-import { Global } from '@emotion/react';
-import { globalStyles, app, app_playlist, highlight } from './App-styles';
 import Spotify from '../../util/Spotify';
+import { TrackInfo } from '../../appTypes';
+import { globalStyles, app, app_playlist, highlight } from './App-styles';
 
 function App() {
   const [searchResults, setSearchResults] = useState<TrackInfo[]>([]);
   const [playlistName, setPlaylistName] = useState('New Playlist');
   const [playlistTracks, setPlaylistTracks] = useState<TrackInfo[]>([]);
-  const [errorMessage, setErrorMessage] = useState<Error | undefined>();
 
   function addTrack(track: TrackInfo) {
     if (
@@ -39,27 +40,34 @@ function App() {
     const trackURIs = playlistTracks.map(
       (track) => `spotify:track:${track.id}`
     );
-    try {
-      Spotify.savePlaylist(playlistName, trackURIs);
-    } catch (e: unknown) {
-      if (e instanceof Error) {
-        setErrorMessage(e);
-      }
-    }
-  }
 
-  function search(searchRequest: string) {
-    try {
-    Spotify.search(searchRequest).then((results) => {
-      setSearchResults(results);
+    const savePlaylistPromise = Spotify.savePlaylist(playlistName, trackURIs);
+    toast.promise(savePlaylistPromise, {
+      pending: 'Saving...',
+      success: {
+        render() {
+          return 'Saved!';
+        },
+        autoClose: 750,
+      },
+      error: {
+        render({ data }) {
+          return `${data.message}`;
+        },
+      },
     });
-    } catch (e: unknown) {
-      if (e instanceof Error) {
-        setErrorMessage(e);
-      }
-    }
   }
 
+  async function search(searchRequest: string) {
+    const searchResultsPromise = Spotify.search(searchRequest);
+    const searchResults = await toast.promise(searchResultsPromise, {
+      error: {
+        render({ data }) {
+          return `${data.message}`;
+        },
+      },
+    });
+    setSearchResults(searchResults);
   }
 
   return (
@@ -80,6 +88,18 @@ function App() {
           />
         </div>
       </div>
+      <ToastContainer
+        position='bottom-center'
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme='colored'
+      />
     </div>
   );
 }
