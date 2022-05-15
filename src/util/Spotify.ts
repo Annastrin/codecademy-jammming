@@ -3,7 +3,7 @@ let sessionData = JSON.parse(
 );
 let accessToken = sessionData?.token;
 const client_id = 'c0ed2e64c73b4756b693beae2ed7a508';
-const redirect_uri = window.location.origin;
+const redirect_uri = window.location.origin + '/codecademy-jammming';
 const authorize_url = 'https://accounts.spotify.com/authorize';
 
 // TODO add url encoding
