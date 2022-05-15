@@ -3,7 +3,7 @@ let sessionData = JSON.parse(
 );
 let accessToken = sessionData?.token;
 const client_id = 'c0ed2e64c73b4756b693beae2ed7a508';
-const redirect_uri = 'http://localhost:3000/';
+const redirect_uri = window.location.origin;
 const authorize_url = 'https://accounts.spotify.com/authorize';
 
 // TODO add url encoding
@@ -27,7 +27,7 @@ window.onload = function () {
           },
           type: 'token',
         },
-        'http://localhost:3000/'
+        redirect_uri
       );
       window.close();
     }
@@ -42,7 +42,7 @@ const Spotify = {
       window.addEventListener('message', listener, false);
       function listener(event: MessageEvent) {
         if (
-          event.origin === 'http://localhost:3000' &&
+          event.origin === redirect_uri &&
           event.source === popup &&
           event.data.type === 'token'
         ) {
