@@ -36,19 +36,24 @@ function App() {
     setPlaylistName(name);
   }
 
-  function savePlaylist() {
+  async function savePlaylist() {
     const trackURIs = playlistTracks.map(
       (track) => `spotify:track:${track.id}`
     );
 
+    if (playlistName && trackURIs.length > 0) {
     const savePlaylistPromise = Spotify.savePlaylist(playlistName, trackURIs);
-    toast.promise(savePlaylistPromise, {
+      await toast.promise(savePlaylistPromise, {
       pending: 'Saving...',
       success: {
         render() {
           return 'Saved!';
         },
         autoClose: 750,
+          onClose: () => {
+            setPlaylistName('New Playlist');
+            setPlaylistTracks([]);
+          },
       },
       error: {
         render({ data }) {
@@ -56,6 +61,7 @@ function App() {
         },
       },
     });
+    }
   }
 
   async function search(searchRequest: string) {
