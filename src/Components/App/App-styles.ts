@@ -50,6 +50,10 @@ export const globalStyles = css`
 
   /* App global styles */
 
+  :root {
+    --toastify-color-success: #6c41ec;
+  }
+
   * {
     box-sizing: border-box;
   }

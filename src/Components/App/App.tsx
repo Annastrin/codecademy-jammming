@@ -42,25 +42,25 @@ function App() {
     );
 
     if (playlistName && trackURIs.length > 0) {
-    const savePlaylistPromise = Spotify.savePlaylist(playlistName, trackURIs);
+      const savePlaylistPromise = Spotify.savePlaylist(playlistName, trackURIs);
       await toast.promise(savePlaylistPromise, {
-      pending: 'Saving...',
-      success: {
-        render() {
-          return 'Saved!';
-        },
-        autoClose: 750,
+        pending: 'Saving...',
+        success: {
+          render() {
+            return 'Saved!';
+          },
+          autoClose: 750,
           onClose: () => {
             setPlaylistName('New Playlist');
             setPlaylistTracks([]);
           },
-      },
-      error: {
-        render({ data }) {
-          return `${data.message}`;
         },
-      },
-    });
+        error: {
+          render({ data }) {
+            return `${data.message}`;
+          },
+        },
+      });
     }
   }
 
@@ -106,6 +106,7 @@ function App() {
         draggable
         pauseOnHover
         theme='colored'
+        role='alert'
       />
     </div>
   );
