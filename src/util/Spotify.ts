@@ -1,36 +1,25 @@
-let sessionData = JSON.parse(
-  sessionStorage.getItem('spotifyTokenData') ?? 'null'
-);
-let accessToken = sessionData?.token;
 const client_id = 'c0ed2e64c73b4756b693beae2ed7a508';
 const redirect_uri = window.location.origin + '/codecademy-jammming';
 const authorize_url = 'https://accounts.spotify.com/authorize';
 
-// TODO add url encoding
-
 window.onload = function () {
-  checkToken();
-  if (!accessToken) {
-    let accessTokenMatch = window.location.href.match(
-      /(?<=access_token=)[^&]+/
-    );
-    let expiresInMatch = window.location.href.match(/(?<=expires_in=)[^&]+/);
-    if (accessTokenMatch && expiresInMatch) {
-      let expiresInNum = Number(expiresInMatch[0]);
-      let expirationDate = Date.now() + expiresInNum * 1000;
-      window.opener.postMessage(
-        {
-          content: {
-            token: accessTokenMatch[0],
-            expires: expiresInMatch[0],
-            expirationDate: expirationDate,
-          },
-          type: 'token',
+  let accessTokenMatch = window.location.href.match(/(?<=access_token=)[^&]+/);
+  let expiresInMatch = window.location.href.match(/(?<=expires_in=)[^&]+/);
+  if (accessTokenMatch && expiresInMatch) {
+    let expiresInNum = Number(expiresInMatch[0]);
+    let expirationDate = Date.now() + expiresInNum * 1000;
+    window.opener.postMessage(
+      {
+        content: {
+          token: accessTokenMatch[0],
+          expires: expiresInMatch[0],
+          expirationDate: expirationDate,
         },
-        redirect_uri
-      );
-      window.close();
-    }
+        type: 'token',
+      },
+      redirect_uri
+    );
+    window.close();
   }
 };
 
@@ -42,7 +31,7 @@ const Spotify = {
       window.addEventListener('message', listener, false);
       function listener(event: MessageEvent) {
         if (
-          event.origin === redirect_uri &&
+          event.origin === window.location.origin &&
           event.source === popup &&
           event.data.type === 'token'
         ) {
@@ -55,20 +44,21 @@ const Spotify = {
 
   async getAccessToken() {
     const tokenData = (await Spotify.retrieveAccessTocken()) as any;
-    accessToken = tokenData.token;
+    const accessToken = tokenData.token;
     const expiresIn = tokenData.expires;
     const tokenDataJSON = JSON.stringify(tokenData);
     sessionStorage.setItem('spotifyTokenData', `${tokenDataJSON}`);
     window.setTimeout(() => sessionStorage.clear(), Number(expiresIn) * 1000);
-    window.history.pushState('Access Token', '', '/');
+    return accessToken;
   },
 
   async search(term: string) {
-    if (!accessToken) {
-      await Spotify.getAccessToken();
-    }
+    const accessToken = await checkToken();
 
-    const data = await requestApi(`search?type=track&q=${term}`);
+    const data = await requestApi(
+      `search?type=track&q=${encodeURIComponent(term)}`,
+      accessToken
+    );
     if (data.tracks) {
       return data.tracks.items.map((track: any) => ({
         id: track.id,
@@ -89,26 +79,28 @@ const Spotify = {
    * @returns - true if final response has 'snapshot_id' property, or false
    */
   async savePlaylist(playlistName: string, trackURIs: string[]) {
-    if (!(playlistName && trackURIs.length > 0)) {
-      return;
-    }
-
-    if (!accessToken) {
-      await Spotify.getAccessToken();
-    }
+    const accessToken = await checkToken();
 
     // Ger user's ID to pass it in the next response
-    const { id: userID } = await requestApi('me');
+    const { id: userID } = await requestApi('me', accessToken);
     // Get created playlist's id to add tracks in the next response; pass playlist's name
-    const { id: playlistID} = await requestApi(`users/${userID}/playlists`, {
-      method: 'POST',
-      body: JSON.stringify({name: playlistName})
-    });
+    const { id: playlistID } = await requestApi(
+      `users/${userID}/playlists`,
+      accessToken,
+      {
+        method: 'POST',
+        body: JSON.stringify({ name: playlistName }),
+      }
+    );
     // Post tracks using their URIs and playlist's id
-    const shapshotObj = await requestApi(`playlists/${playlistID}/tracks`, {
-      method: 'POST',
-      body: JSON.stringify({ uris: trackURIs })
-    });
+    const shapshotObj = await requestApi(
+      `playlists/${playlistID}/tracks`,
+      accessToken,
+      {
+        method: 'POST',
+        body: JSON.stringify({ uris: trackURIs }),
+      }
+    );
     return shapshotObj.hasOwnProperty('snapshot_id');
   },
 };
@@ -116,19 +108,21 @@ const Spotify = {
 /**
  * Helper function to send Get or Post requests to Spotify API
  * @param endpoint - paths to access different endpoints [https://developer.spotify.com/documentation/web-api/reference/#/]
+ * @param token - Spotify user's access token
  * @param args - additional arguments such as METHOD or BODY
  * @returns - JSON response object
  */
-async function requestApi(endpoint: string, args?: any) {
-  let sessionData = JSON.parse(sessionStorage.getItem('spotifyTokenData') ?? 'null');
-  let accessToken = sessionData?.token;
+async function requestApi(endpoint: string, token: string | null, args?: any) {
   const params = {
     headers: {
-      Authorization: `Bearer ${accessToken}`,
+      Authorization: `Bearer ${token}`,
     },
-    ...args
-  }
-  const response = await fetch(`https://api.spotify.com/v1/${endpoint}`, params);
+    ...args,
+  };
+  const response = await fetch(
+    `https://api.spotify.com/v1/${endpoint}`,
+    params
+  );
   if (!response.ok) {
     throw new Error('Request failed!');
   }
@@ -139,14 +133,20 @@ async function requestApi(endpoint: string, args?: any) {
  * Check if access token saved in session storage is expired, clear if it's expired
  */
 async function checkToken() {
-  const tokenData = sessionStorage.getItem('spotifyTokenData');
-  let tokenDataObj;
-  if (tokenData) {
-    tokenDataObj = await JSON.parse(tokenData);
-    const tokenExpirationDate = tokenDataObj.expirationDate;
+  let accessToken;
+  let sessionData = await JSON.parse(
+    sessionStorage.getItem('spotifyTokenData') ?? 'null'
+  );
+  if (sessionData) {
+    const tokenExpirationDate = sessionData.expirationDate;
     if (tokenExpirationDate <= Date.now()) {
       sessionStorage.clear();
+    } else {
+      accessToken = sessionData.token;
+      return accessToken;
     }
+  } else {
+    return accessToken = await Spotify.getAccessToken();
   }
 }
 
