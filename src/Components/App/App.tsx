@@ -108,6 +108,11 @@ function App() {
         theme='colored'
         role='alert'
       />
+      <img
+        src='./background_photo_desktop.jpg'
+        alt=''
+        style={{ display: 'none' }}
+      />
     </div>
   );
 }
