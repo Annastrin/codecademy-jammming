@@ -134,18 +134,15 @@ async function requestApi(endpoint: string, token: string | null, args?: any) {
  */
 async function checkToken() {
   let accessToken;
-  let sessionData = await JSON.parse(
+  const sessionData: {token: string, expirationDate: number}|null = await JSON.parse(
     sessionStorage.getItem('spotifyTokenData') ?? 'null'
   );
-  if (sessionData) {
-    const tokenExpirationDate = sessionData.expirationDate;
-    if (tokenExpirationDate <= Date.now()) {
-      sessionStorage.clear();
-    } else {
-      accessToken = sessionData.token;
-      return accessToken;
-    }
+  const tokenExpirationDate = sessionData?.expirationDate;
+  if (tokenExpirationDate && tokenExpirationDate > Date.now()) {
+    accessToken = sessionData.token;
+    return accessToken;
   } else {
+    sessionStorage.clear();
     return accessToken = await Spotify.getAccessToken();
   }
 }
