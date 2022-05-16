@@ -81,6 +81,7 @@ function App() {
         <div css={app_playlist}>
           <SearchResults searchResults={searchResults} onAdd={addTrack} />
           <Playlist
+            playlistName={playlistName}
             playlistTracks={playlistTracks}
             onRemove={removeTrack}
             onNameChange={updatePlaylistName}
