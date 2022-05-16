@@ -92,6 +92,7 @@ export const globalStyles = css`
 export const app = css`
   height: 100%;
   padding: 0 17% 10% 17%;
+  background-color: #321184;
   background-image: url(${BackgroundDesktop});
   background-size: cover;
   background-position: center;
