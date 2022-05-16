@@ -9,6 +9,7 @@ import Playlist from '../Playlist/Playlist';
 import Spotify from '../../util/Spotify';
 import { TrackInfo } from '../../appTypes';
 import { globalStyles, app, app_playlist, highlight } from './App-styles';
+import backgroundImage from './background_photo_desktop.jpg';
 
 function App() {
   const [searchResults, setSearchResults] = useState<TrackInfo[]>([]);
@@ -108,11 +109,7 @@ function App() {
         theme='colored'
         role='alert'
       />
-      <img
-        src='./background_photo_desktop.jpg'
-        alt=''
-        style={{ display: 'none' }}
-      />
+      <img src={backgroundImage} alt='' style={{ display: 'none' }} />
     </div>
   );
 }
