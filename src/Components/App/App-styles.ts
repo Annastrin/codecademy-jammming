@@ -97,6 +97,10 @@ export const app = css`
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+
+  @media only screen and (max-width: 760px) {
+    padding: 0 7% 10% 7%;
+  }
 `;
 
 export const app_playlist = css`
